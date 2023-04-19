@@ -28,4 +28,10 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  googleLogin(user: User) {
+    return {
+      access_token: user.accessToken,
+    };
+  }
 }
