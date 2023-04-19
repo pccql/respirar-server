@@ -18,14 +18,14 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.findByEmail(createUserDto.email);
 
     if (user) {
-      throw new HttpException('Email already taken', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Email já registrado', HttpStatus.BAD_REQUEST);
     }
 
     const salt = await bcrypt.genSalt();
