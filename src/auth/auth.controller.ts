@@ -1,4 +1,11 @@
-import { Controller, Request, Post, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Request,
+  Response,
+  Post,
+  UseGuards,
+  Get,
+} from '@nestjs/common';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -20,7 +27,11 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  async googleCallback(@Request() req) {
-    return await this.authService.googleLogin(req.user);
+  async googleCallback(@Request() req, @Response() res) {
+    const { access_token } = await this.authService.googleLogin(req.user);
+    const redirectUrl = req.query.redirect_url || 'http://localhost:3000/';
+
+    res.redirect(redirectUrl + '/callback?token=' + access_token);
+    return res;
   }
 }
