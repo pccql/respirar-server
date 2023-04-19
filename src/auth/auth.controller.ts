@@ -15,13 +15,12 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('google')
-  async googleLogin(@Request() req) {
-    const user = req.user;
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  async googleLogin() {}
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleCallback(@Request() req) {
-    return this.authService.googleLogin(req.user);
+    return await this.authService.googleLogin(req.user);
   }
 }
