@@ -4,12 +4,15 @@ import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
+import { google } from 'googleapis';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -47,5 +50,21 @@ export class AuthService {
       access_token,
       g_token: user.accessToken,
     };
+  }
+
+  async getGoogleCalendarService(access_token: string) {
+    const oauth2Client = new google.auth.OAuth2(
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      this.configService.get<string>('GOOGLE_CALLBACK_URL'),
+    );
+
+    oauth2Client.setCredentials({
+      access_token,
+    });
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    return calendar;
   }
 }

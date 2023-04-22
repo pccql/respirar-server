@@ -32,11 +32,15 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleCallback(@Request() req, @Response() res) {
-    const { access_token } = await this.authService.googleLogin(req.user);
+    const { access_token, g_token } = await this.authService.googleLogin(
+      req.user,
+    );
 
     const redirectUrl = this.configService.get<string>('GOOGLE_REDIRECT_URL');
 
-    res.redirect(redirectUrl + 'callback?token=' + access_token);
+    res.redirect(
+      redirectUrl + `callback?token=${access_token}&g_token=${g_token}`,
+    );
     return res;
   }
 }
