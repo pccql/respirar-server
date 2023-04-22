@@ -8,27 +8,34 @@ import {
   Delete,
   HttpException,
   HttpStatus,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { InterestsService } from './interests.service';
 import { CreateInterestDto } from './dto/create-interest.dto';
 import { UpdateInterestDto } from './dto/update-interest.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('interests')
 export class InterestsController {
   constructor(private readonly interestsService: InterestsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() createInterestDto: CreateInterestDto) {
-    const user = await this.interestsService.findByUser(createInterestDto.user);
+  async create(@Request() req, @Body() createInterestDto: CreateInterestDto) {
+    const interest = await this.interestsService.findByUser(req.user.id);
 
-    if (user) {
+    if (interest) {
       throw new HttpException(
         'User already has interest',
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    return await this.interestsService.create(createInterestDto);
+    return await this.interestsService.create({
+      user: req.user.id,
+      ...createInterestDto,
+    });
   }
 
   @Get()

@@ -9,10 +9,14 @@ import {
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -30,8 +34,7 @@ export class AuthController {
   async googleCallback(@Request() req, @Response() res) {
     const { access_token } = await this.authService.googleLogin(req.user);
 
-    const redirectUrl = 'https://respirar.vercel.app/';
-    // const redirectUrl = 'http://localhost:3000/';
+    const redirectUrl = this.configService.get<string>('GOOGLE_REDIRECT_URL');
 
     res.redirect(redirectUrl + 'callback?token=' + access_token);
     return res;

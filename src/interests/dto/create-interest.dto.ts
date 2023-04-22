@@ -1,31 +1,31 @@
-import { IsBoolean, IsNotEmpty, IsInt, IsArray } from 'class-validator';
+import { IsBoolean, IsOptional, IsInt, IsArray } from 'class-validator';
 
 export class CreateInterestDto {
-  @IsNotEmpty()
   @IsInt()
+  @IsOptional()
   user: number;
 
-  @IsNotEmpty()
   @IsBoolean()
+  @IsOptional()
   movies: boolean;
 
-  @IsNotEmpty()
   @IsBoolean()
+  @IsOptional()
   tv_shows: boolean;
 
-  @IsNotEmpty()
   @IsBoolean()
+  @IsOptional()
   meditation: boolean;
 
-  @IsNotEmpty()
   @IsBoolean()
+  @IsOptional()
   exercise: boolean;
 
-  @IsNotEmpty()
   @IsArray()
+  @IsOptional()
   genres: string[];
 
-  @IsNotEmpty()
   @IsArray()
+  @IsOptional()
   confort_shows: string[];
 }

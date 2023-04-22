@@ -34,15 +34,18 @@ export class AuthService {
   }
 
   async googleLogin(user: User) {
-    const userExists = await this.usersService.findByEmail(user.email);
+    let userExists = await this.usersService.findByEmail(user.email);
 
     if (!userExists) {
       const { name, email } = user;
-      await this.usersService.create({ name, email });
+      userExists = await this.usersService.create({ name, email });
     }
 
+    const { access_token } = await this.login(userExists);
+
     return {
-      access_token: user.accessToken,
+      access_token,
+      g_token: user.accessToken,
     };
   }
 }

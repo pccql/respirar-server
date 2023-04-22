@@ -22,10 +22,10 @@ model User {
 model Interest {
   id            Int      @id @default(autoincrement())
   user          Int      @unique
-  movies        Boolean
-  tv_shows      Boolean
-  meditation    Boolean
-  exercise      Boolean
+  movies        Boolean  @default(false)
+  tv_shows      Boolean  @default(false)
+  meditation    Boolean  @default(false)
+  exercise      Boolean  @default(false)
   genres        String[]
   confort_shows String[]
 
