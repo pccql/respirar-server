@@ -23,7 +23,7 @@ export class InterestsController {
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Request() req, @Body() createInterestDto: CreateInterestDto) {
-    const interest = await this.interestsService.findByUser(req.user.id);
+    const interest = await this.interestsService.findByUser(req.user);
 
     if (interest) {
       throw new HttpException(

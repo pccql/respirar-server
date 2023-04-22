@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateInterestDto } from './dto/create-interest.dto';
 import { UpdateInterestDto } from './dto/update-interest.dto';
 import { PrismaService } from '../prisma.service';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class InterestsService {
@@ -21,8 +22,8 @@ export class InterestsService {
     return await this.prisma.interest.findUnique({ where: { id } });
   }
 
-  async findByUser(user: number) {
-    return await this.prisma.interest.findUnique({ where: { user } });
+  async findByUser(user: User) {
+    return await this.prisma.interest.findUnique({ where: { user: user.id } });
   }
 
   async update(id: number, updateInterestDto: UpdateInterestDto) {
