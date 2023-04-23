@@ -1,9 +1,18 @@
-import { Controller, Get, Req, UseGuards, Headers } from '@nestjs/common';
-import * as moment from 'moment-timezone';
+import {
+  Controller,
+  Get,
+  Req,
+  UseGuards,
+  Headers,
+  Body,
+  Post,
+} from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { InterestsService } from 'src/interests/interests.service';
 import { UsersService } from 'src/users/users.service';
+import { getAvailableTimes } from 'src/utils/getAvailableTimes';
+import { CreateActivityDto } from './dto/create-activity.dto';
 
 @Controller('dashboard')
 export class DashboardController {
@@ -12,6 +21,8 @@ export class DashboardController {
     private readonly interestsService: InterestsService,
     private readonly authService: AuthService,
   ) {}
+
+  HUMOUR_MAPPING = { 1: 'triste', 2: 'neutro', 3: 'feliz' };
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -23,54 +34,47 @@ export class DashboardController {
     return { ...user, hasInterest };
   }
 
-  @Get('google-calendar')
+  @Post('activities')
   async getGoogleCalendarEvents(
     @Headers('Authorization') authorization: string,
+    @Body() body: CreateActivityDto,
   ) {
     const accessToken = authorization.split(' ')[1];
     const calendar = await this.authService.getGoogleCalendarService(
       accessToken,
     );
 
-    // Get the timezone of the calendar
-    const calendarResponse = await calendar.calendars.get({
-      calendarId: 'primary',
-    });
-    const calendarTimezone = calendarResponse.data.timeZone;
+    const availableTimes = await getAvailableTimes(calendar);
 
-    const startOfDay = moment().tz(calendarTimezone).startOf('day').hour(8);
-    const endOfDay = moment().tz(calendarTimezone).startOf('day').hour(19);
+    const humour = body.humour || 2; // Default to 'neutro' humour if not specified
+    const user = await this.usersService.findByEmail(body.email);
+    const interests = await this.interestsService.findByUser(user);
 
-    // Get events for the current day
-    const response = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: startOfDay.toISOString(true),
-      timeMax: endOfDay.toISOString(true),
-      timeZone: calendarTimezone,
-    });
+    // Filter activities based on user interests
+    const activities = [
+      ...(interests.movies ? ['watch a movie'] : []),
+      ...(interests.tv_shows ? ['watch a TV show'] : []),
+      ...(interests.meditation ? ['meditate'] : []),
+      ...(interests.exercise ? ['exercise'] : []),
+      ...(interests.genres && interests.genres.length > 0
+        ? interests.genres.map((genre) => `watch a ${genre} movie`)
+        : []),
+      ...(interests.confort_shows && interests.confort_shows.length > 0
+        ? interests.confort_shows.map((show) => `watch ${show}`)
+        : []),
+    ];
 
-    const events = response.data.items;
+    // Select a random available time slot for all activities
+    const suggestedActivity =
+      availableTimes.length > 0
+        ? {
+            time: availableTimes[
+              Math.floor(Math.random() * availableTimes.length)
+            ],
+            activities: activities.slice(0, 2),
+          }
+        : { time: null, activities: [] };
 
-    // Find available times
-    const availableTimes = [];
-    const duration = 30; // Desired duration in minutes
-
-    for (let i = 0; i < events.length - 1; i++) {
-      const eventEnd = moment(events[i].end.dateTime).tz(calendarTimezone);
-      const nextEventStart = moment(events[i + 1].start.dateTime).tz(
-        calendarTimezone,
-      );
-
-      const availableDuration = nextEventStart.diff(eventEnd, 'minutes');
-
-      if (availableDuration >= duration) {
-        availableTimes.push({
-          start: eventEnd.format(),
-          end: nextEventStart.format(),
-        });
-      }
-    }
-
-    return availableTimes;
+    return suggestedActivity;
   }
 }
