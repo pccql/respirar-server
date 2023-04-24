@@ -6,6 +6,8 @@ import {
   Headers,
   Body,
   Post,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -39,42 +41,48 @@ export class DashboardController {
     @Headers('Authorization') authorization: string,
     @Body() body: CreateActivityDto,
   ) {
-    const accessToken = authorization.split(' ')[1];
-    const calendar = await this.authService.getGoogleCalendarService(
-      accessToken,
-    );
+    try {
+      const accessToken = authorization.split(' ')[1];
 
-    const availableTimes = await getAvailableTimes(calendar);
+      const calendar = accessToken
+        ? await this.authService.getGoogleCalendarService(accessToken)
+        : null;
 
-    const humour = body.humour || 2; // Default to 'neutro' humour if not specified
-    const user = await this.usersService.findByEmail(body.email);
-    const interests = await this.interestsService.findByUser(user);
+      const availableTimes = await getAvailableTimes(calendar);
 
-    // Filter activities based on user interests
-    const activities = [
-      ...(interests.movies ? ['watch a movie'] : []),
-      ...(interests.tv_shows ? ['watch a TV show'] : []),
-      ...(interests.meditation ? ['meditate'] : []),
-      ...(interests.exercise ? ['exercise'] : []),
-      ...(interests.genres && interests.genres.length > 0
-        ? interests.genres.map((genre) => `watch a ${genre} movie`)
-        : []),
-      ...(interests.confort_shows && interests.confort_shows.length > 0
-        ? interests.confort_shows.map((show) => `watch ${show}`)
-        : []),
-    ];
+      const humour = body.humour || 2; // Default to 'neutro' humour if not specified
+      const user = await this.usersService.findByEmail(body.email);
+      const interests = await this.interestsService.findByUser(user);
 
-    // Select a random available time slot for all activities
-    const suggestedActivity =
-      availableTimes.length > 0
-        ? {
-            time: availableTimes[
-              Math.floor(Math.random() * availableTimes.length)
-            ],
-            activities: activities.slice(0, 2),
-          }
-        : { time: null, activities: [] };
+      // Filter activities based on user interests
+      const activities = [
+        ...(interests.movies ? ['watch a movie'] : []),
+        ...(interests.tv_shows ? ['watch a TV show'] : []),
+        ...(interests.meditation ? ['meditate'] : []),
+        ...(interests.exercise ? ['exercise'] : []),
+        ...(interests.genres && interests.genres.length > 0
+          ? interests.genres.map((genre) => `watch a ${genre} movie`)
+          : []),
+        ...(interests.confort_shows && interests.confort_shows.length > 0
+          ? interests.confort_shows.map((show) => `watch ${show}`)
+          : []),
+      ];
 
-    return suggestedActivity;
+      // Select a random available time slot for all activities
+      const suggestedActivity =
+        availableTimes.length > 0
+          ? {
+              time: availableTimes[
+                Math.floor(Math.random() * availableTimes.length)
+              ],
+              activities: activities.slice(0, 2),
+            }
+          : { time: null, activities: [] };
+
+      return suggestedActivity;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
   }
 }

@@ -53,18 +53,22 @@ export class AuthService {
   }
 
   async getGoogleCalendarService(access_token: string) {
-    const oauth2Client = new google.auth.OAuth2(
-      this.configService.get<string>('GOOGLE_CLIENT_ID'),
-      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      this.configService.get<string>('GOOGLE_CALLBACK_URL'),
-    );
+    try {
+      const oauth2Client = new google.auth.OAuth2(
+        this.configService.get<string>('GOOGLE_CLIENT_ID'),
+        this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+        this.configService.get<string>('GOOGLE_CALLBACK_URL'),
+      );
 
-    oauth2Client.setCredentials({
-      access_token,
-    });
+      oauth2Client.setCredentials({
+        access_token,
+      });
 
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+      const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-    return calendar;
+      return calendar;
+    } catch (error) {
+      throw Error('Unauthorized');
+    }
   }
 }
