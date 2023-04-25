@@ -9,10 +9,12 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { ActivitiesService } from 'src/activities/activities.service';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { InterestsService } from 'src/interests/interests.service';
 import { UsersService } from 'src/users/users.service';
+import { chooseActivity } from 'src/utils/chooseActivity';
 import { getAvailableTimes } from 'src/utils/getAvailableTimes';
 import { CreateActivityDto } from './dto/create-activity.dto';
 
@@ -22,9 +24,8 @@ export class DashboardController {
     private readonly usersService: UsersService,
     private readonly interestsService: InterestsService,
     private readonly authService: AuthService,
+    private readonly activitiesService: ActivitiesService,
   ) {}
-
-  HUMOUR_MAPPING = { 1: 'triste', 2: 'neutro', 3: 'feliz' };
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -42,6 +43,9 @@ export class DashboardController {
     @Body() body: CreateActivityDto,
   ) {
     try {
+      const { email } = body;
+      const user = await this.usersService.findByEmail(email);
+
       const accessToken = authorization.split(' ')[1];
 
       const calendar = accessToken
@@ -50,36 +54,25 @@ export class DashboardController {
 
       const availableTimes = await getAvailableTimes(calendar);
 
+      const todaysActivity = await this.activitiesService.findCurrentByUser(
+        user.id,
+      );
+
+      if (todaysActivity.length > 0) {
+        return { activities: todaysActivity[0], availableTimes };
+      }
+
       const humour = body.humour || 2; // Default to 'neutro' humour if not specified
-      const user = await this.usersService.findByEmail(body.email);
       const interests = await this.interestsService.findByUser(user);
 
-      // Filter activities based on user interests
-      const activities = [
-        ...(interests.movies ? ['watch a movie'] : []),
-        ...(interests.tv_shows ? ['watch a TV show'] : []),
-        ...(interests.meditation ? ['meditate'] : []),
-        ...(interests.exercise ? ['exercise'] : []),
-        ...(interests.genres && interests.genres.length > 0
-          ? interests.genres.map((genre) => `watch a ${genre} movie`)
-          : []),
-        ...(interests.confort_shows && interests.confort_shows.length > 0
-          ? interests.confort_shows.map((show) => `watch ${show}`)
-          : []),
-      ];
+      const chosenActivities = chooseActivity(interests, humour);
 
-      // Select a random available time slot for all activities
-      const suggestedActivity =
-        availableTimes.length > 0
-          ? {
-              time: availableTimes[
-                Math.floor(Math.random() * availableTimes.length)
-              ],
-              activities: activities.slice(0, 2),
-            }
-          : { time: null, activities: [] };
+      const newActivity = await this.activitiesService.create({
+        user: user.id,
+        options: chosenActivities,
+      });
 
-      return suggestedActivity;
+      return { activities: newActivity, availableTimes };
     } catch (error) {
       console.log(error);
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);

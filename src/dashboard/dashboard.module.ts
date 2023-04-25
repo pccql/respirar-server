@@ -6,6 +6,7 @@ import { InterestsService } from 'src/interests/interests.service';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { ActivitiesService } from 'src/activities/activities.service';
 
 @Module({
   controllers: [DashboardController],
@@ -16,6 +17,7 @@ import { ConfigService } from '@nestjs/config';
     AuthService,
     JwtService,
     ConfigService,
+    ActivitiesService,
   ],
 })
 export class DashboardModule {}

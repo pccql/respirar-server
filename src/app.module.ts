@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { InterestsModule } from './interests/interests.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ActivitiesModule } from './activities/activities.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ConfigModule.forRoot(),
     InterestsModule,
     DashboardModule,
+    ActivitiesModule,
   ],
   controllers: [],
   providers: [],

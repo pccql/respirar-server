@@ -1,8 +1,13 @@
 import { calendar_v3 } from 'googleapis';
 import * as moment from 'moment-timezone';
 
+export type AvailableTime = {
+  start: Date | string;
+  end: Date | string;
+};
+
 export const getAvailableTimes = async (calendar?: calendar_v3.Calendar) => {
-  const availableTimes = [];
+  const availableTimes: AvailableTime[] = [];
 
   if (calendar) {
     // Get the timezone of the calendar
