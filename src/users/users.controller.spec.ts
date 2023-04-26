@@ -21,7 +21,7 @@ describe('UsersController', () => {
   describe('create', () => {
     it('should create user', async () => {
       const user = {
-        id: '1',
+        id: 1,
         name: 'Pedro Queiroz',
         email: 'test@gmail.com',
         password: 'a',
@@ -31,28 +31,24 @@ describe('UsersController', () => {
         .spyOn(service, 'findByEmail')
         .mockImplementation(() => Promise.resolve(null));
 
-      jest
-        .spyOn(service, 'create')
-        .mockImplementation(() => Promise.resolve(user));
+      jest.spyOn(service, 'create').mockResolvedValue(user);
 
       expect(await controller.create(user)).toBe(user);
     });
 
     it('should throw error when email is already in use', async () => {
       const users = [
-        { id: '1', name: 'User 1', email: 'test@gmail.com', password: 'a' },
-        { id: '2', name: 'User 2', email: 'test2@gmail.com', password: 'a' },
+        { id: 1, name: 'User 1', email: 'test@gmail.com', password: 'a' },
+        { id: 2, name: 'User 2', email: 'test2@gmail.com', password: 'a' },
       ];
 
-      jest
-        .spyOn(service, 'findByEmail')
-        .mockImplementation(() => Promise.resolve(users[0]));
+      jest.spyOn(service, 'findByEmail').mockResolvedValue(users[0]);
 
       try {
         await controller.create(users[1]);
       } catch (error) {
         expect(error).toEqual(
-          new HttpException('Email already taken', HttpStatus.BAD_REQUEST),
+          new HttpException('Email já registrado', HttpStatus.BAD_REQUEST),
         );
       }
     });
@@ -61,17 +57,15 @@ describe('UsersController', () => {
   describe('findOne', () => {
     it('should return the user', async () => {
       const user = {
-        id: '1',
+        id: 1,
         name: 'User 1',
         email: 'test@gmail.com',
         password: 'a',
       };
 
-      jest
-        .spyOn(service, 'findOne')
-        .mockImplementation(() => Promise.resolve(user));
+      jest.spyOn(service, 'findOne').mockResolvedValue(user);
 
-      expect(await controller.findOne(user.id)).toBe(user);
+      expect(await controller.findOne(user.id.toString())).toBe(user);
     });
 
     it('should throw a Not Found Error when user is not found', async () => {
@@ -104,8 +98,8 @@ describe('UsersController', () => {
 
     it('should return array of users', async () => {
       const users = [
-        { id: '1', name: 'User 1', email: 'test@gmail.com', password: 'a' },
-        { id: '2', name: 'User 2', email: 'test2@gmail.com', password: 'a' },
+        { id: 1, name: 'User 1', email: 'test@gmail.com', password: 'a' },
+        { id: 2, name: 'User 2', email: 'test2@gmail.com', password: 'a' },
       ];
 
       jest
@@ -119,7 +113,7 @@ describe('UsersController', () => {
   describe('update', () => {
     it('should update a user', async () => {
       const user = {
-        id: '1',
+        id: 1,
         name: 'Pedro Queiroz',
         email: 'test@gmail.com',
         password: 'a',
@@ -135,7 +129,9 @@ describe('UsersController', () => {
         .spyOn(service, 'update')
         .mockImplementation(() => Promise.resolve(updatedUser));
 
-      expect(await controller.update(user.id, updatedUser)).toBe(updatedUser);
+      expect(await controller.update(user.id.toString(), updatedUser)).toBe(
+        updatedUser,
+      );
     });
   });
 });
