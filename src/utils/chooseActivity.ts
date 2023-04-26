@@ -1,62 +1,52 @@
 import { Interest } from 'src/interests/entities/interest.entity';
 
+type ActivityType = 'tv_show' | 'movie' | 'meditation' | 'walk' | 'exercise';
+
+interface RandomElement {
+  genres: string[];
+  confort_shows: string[];
+}
+
+const addActivity = (activities: string[], activity: string): void => {
+  if (!activities.includes(activity)) {
+    activities.push(activity);
+  }
+};
+
+function getRandomElement(element: string[]): string {
+  return element[Math.floor(Math.random() * element.length)];
+}
+
 export const chooseActivity = (
-  interests: Interest,
+  interests: Interest & RandomElement,
   humour: number,
 ): string[] => {
-  const activities = [];
+  const activities: string[] = [];
 
-  // Rank interests based on humour
   if (humour === 1) {
-    if (interests.tv_shows) {
-      activities.push('tv show');
-    }
-    if (interests.meditation) {
-      activities.push('meditação');
-    }
-    if (activities.length === 0) {
-      activities.push('caminhada');
-    }
+    interests.tv_shows && addActivity(activities, 'tv_show');
+    interests.meditation && addActivity(activities, 'meditation');
+    activities.length === 0 && addActivity(activities, 'walk');
   } else if (humour === 2) {
-    if (interests.movies) {
-      activities.push('movie');
-    }
-    if (interests.exercise) {
-      activities.push('exercício');
-    }
-    if (activities.length < 2) {
-      activities.push('meditação');
-    }
+    interests.movies && addActivity(activities, 'movie');
+    interests.exercise && addActivity(activities, 'exercise');
+    activities.length < 2 && addActivity(activities, 'meditation');
   } else if (humour === 3) {
-    if (interests.exercise) {
-      activities.push('exercício');
-    }
-    if (interests.movies) {
-      activities.push('movie');
-    }
-    if (interests.meditation) {
-      activities.push('meditação');
-    }
-    if (activities.length < 3) {
-      activities.push('tv show');
-    }
+    interests.exercise && addActivity(activities, 'exercise');
+    interests.movies && addActivity(activities, 'movie');
+    interests.meditation && addActivity(activities, 'meditation');
+    activities.length < 3 && addActivity(activities, 'tv_show');
   }
 
-  // If movies or tv shows are in the top 3, choose a genre or comfort show
-  if (activities.includes('movie') && interests.genres.length > 0) {
-    const randomIndex = Math.floor(Math.random() * interests.genres.length);
-    activities[activities.indexOf('movie')] =
-      'assistir filme de ' + interests.genres[randomIndex];
+  if (activities.includes('movie')) {
+    const movieGenre = getRandomElement(interests.genres);
+    activities[activities.indexOf('movie')] = 'movie,' + movieGenre;
   }
 
-  if (activities.includes('tv show') && interests.confort_shows.length > 0) {
-    const randomIndex = Math.floor(
-      Math.random() * interests.confort_shows.length,
-    );
-    activities[activities.indexOf('tv show')] =
-      'assistir ' + interests.confort_shows[randomIndex];
+  if (activities.includes('tv_show')) {
+    const tvShowConfortShow = getRandomElement(interests.genres);
+    activities[activities.indexOf('tv_show')] = 'tv_show,' + tvShowConfortShow;
   }
 
-  // Return the top 3 ranked activities
   return activities.slice(0, 3);
 };
