@@ -37,4 +37,25 @@ export class ActivitiesService {
       data: updateActivityDto,
     });
   }
+
+  async getHistory(user: number) {
+    // Group the activities by their chosen field, and count the number of occurrences
+    const activityCounts = await this.prisma.activity.groupBy({
+      by: ['completed'],
+      _count: true,
+      where: { user },
+    });
+
+    const topActivities = activityCounts
+      .sort((a, b) => b._count - a._count)
+      .slice(0, 3);
+
+    // Map the top activities to the desired response format
+    const response = topActivities.map(({ completed, _count }) => ({
+      name: completed, // assuming there's only one option chosen for each activity
+      amount: _count,
+    }));
+
+    return response;
+  }
 }

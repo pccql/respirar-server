@@ -58,8 +58,10 @@ export class DashboardController {
         user.id,
       );
 
+      const history = await this.activitiesService.getHistory(user.id);
+
       if (todaysActivity.length > 0) {
-        return { activities: todaysActivity[0], availableTimes };
+        return { activities: todaysActivity[0], availableTimes, history };
       }
 
       const humour = body.humour || 2; // Default to 'neutro' humour if not specified
@@ -72,7 +74,7 @@ export class DashboardController {
         options: chosenActivities,
       });
 
-      return { activities: newActivity, availableTimes };
+      return { activities: newActivity, availableTimes, history };
     } catch (error) {
       console.log(error);
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
