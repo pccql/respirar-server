@@ -34,6 +34,9 @@ export const getAvailableTimes = async (calendar?: calendar_v3.Calendar) => {
     // Find available times
     if (events.length > 0) {
       for (let i = 0; i < events.length - 1; i++) {
+        if (!events[i + 1].start || !events[i].end) {
+          continue;
+        }
         const eventEnd = moment(events[i].end.dateTime).tz(calendarTimezone);
         const nextEventStart = moment(events[i + 1].start.dateTime).tz(
           calendarTimezone,
